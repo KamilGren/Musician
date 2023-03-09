@@ -1,5 +1,5 @@
 
-# Musician application
+# Musician
 
 ## Why?
 Hi. Welcome to my new application. Its a great pleasure for me to write something like this.
@@ -8,8 +8,8 @@ It also help me to know Java more deeply.
 
 ## Technologies
 
-- Java
-- JavaFX
+- Java 17
+- JavaFX 17
 - Maven
 
 ## What you can find here and why it's interesting?
