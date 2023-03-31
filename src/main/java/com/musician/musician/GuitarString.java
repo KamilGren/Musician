@@ -13,13 +13,18 @@ public class GuitarString {
     private final static String [] allNotes  = {"E", "F", "F#", "G", "G#", "A", "A#", "B", "C", "C#", "D", "D#"};
     private static List<String> listOfStringNotes = Arrays.stream(allNotes).toList();
 
+    private List<String> listOfStringNotes2 = new ArrayList<>();
     private List<Note> listOfNotes;
 
 
     public GuitarString(String name) {
         this.name = name;
         this.listOfNotes = createStringUpdate(name);
-        //createString(name);
+        this.listOfStringNotes2 = createGuitarString(name);
+    }
+
+    public List<String> getListOfStringNotes2() {
+        return listOfStringNotes2;
     }
 
     public String getName() {
@@ -58,36 +63,47 @@ public class GuitarString {
     }
 
 
-//    public static List<String> createString(String nameOfString)
-//    {
-//
-//        List<String> notes = getListOfStringNotes(); // all 12 notes
-//        List<String> allGuitarStringNotes = new ArrayList<>();
-//        int startNoteIndex = notes.indexOf(nameOfString); // index of start note like A = 5
-//        int numberOfNotesInFretboard = 20;
-//        int numberOfNotesInOneOctavia = 12;
-//        int howManyNotesInOneOctavia= numberOfNotesInOneOctavia - startNoteIndex;  // in A its 12 - 5 = 7 - 7 notes to end of notes array!
-//        int notesNeeded = numberOfNotesInFretboard - howManyNotesInOneOctavia; // and after that how many notes to end of fretboard
-//
-//        //int notesNeeded =  // notes needed to use
-//        // 25
-//
-//            allGuitarStringNotes.addAll(notes.subList(startNoteIndex+1,numberOfNotesInOneOctavia));
-//
-//            if(notesNeeded < 12) {
-//                allGuitarStringNotes.addAll(notes);
-//            }
-//            else {
-//                notesNeeded = notesNeeded - 12;
-//                allGuitarStringNotes.addAll(notes);
-//                allGuitarStringNotes.addAll(notes.subList(0, notesNeeded));
-//            }
-//
-//        System.out.println(allGuitarStringNotes);
-//
-//            return allGuitarStringNotes;
-//        }
+    // create new guitar string
+    //this is new method of creating guitar string, im working on it
+    public static List<String> createGuitarString(String nameOfString)
+    {
 
+        // all 12 notes in string from E to D#
+        List<String> notes = getListOfStringNotes();
+
+        // new list for all guitar notes from one guitar string
+        List<String> allGuitarStringNotes = new ArrayList<>();
+
+        // we have 20 notes on one string
+        int numberOfNotesInFretboard = 20;
+
+        // and 12 sounds - notes in one octava like from E4 to E3
+        int numberOfNotesInOneOctavia = 12;
+
+        // nameOfString - which is only note and number like E4 :)
+        String index = Character.toString(nameOfString.charAt(0)); // first character of nameOfString - its note like E,A,D,G...
+        int octava = Character.getNumericValue(nameOfString.charAt(1)); // level of octava
+
+        // index of start note, im using my list where E is first so for A its 5 - EFF#GG#A
+        int startNoteIndex = notes.indexOf(index);
+
+        allGuitarStringNotes.addAll(notes.subList(startNoteIndex,numberOfNotesInOneOctavia));
+
+        int notesToFullFretboard = numberOfNotesInFretboard - startNoteIndex;
+
+            if(notesToFullFretboard < 12) {
+                allGuitarStringNotes.addAll(notes);
+            }
+            else {
+                notesToFullFretboard = notesToFullFretboard - 12;
+                allGuitarStringNotes.addAll(notes);
+                allGuitarStringNotes.addAll(notes.subList(0, notesToFullFretboard));
+            }
+
+        System.out.println(allGuitarStringNotes);
+
+            return allGuitarStringNotes;
+    }
 
 
 
@@ -100,7 +116,7 @@ public class GuitarString {
         List<String> listOfNotes = Arrays.stream(allNotes).toList(); // passing this notes to list
         int indexOfStartNote;
         String index = Character.toString(nameOfString.charAt(0)); // first character of nameOfString - its note like E,A,D,G...
-        int octava = Integer.parseInt(String.valueOf(nameOfString.charAt(1))); // like 4 3 or 2
+        int octava = Character.getNumericValue(nameOfString.charAt(1)); // like 4 3 or 2
         indexOfStartNote = listOfNotes.indexOf(index);
         String startNote = listOfNotes.get(indexOfStartNote); // finding this note in list and create String with it
         int numberOfNotesInOneOctava = sizeOfOctavia - listOfNotes.indexOf(index); // number of notes start from first column to last note (its D#=11)

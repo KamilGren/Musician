@@ -258,7 +258,6 @@ public class HelloApplication extends Application {
         return cNameOfChord1.getValue() + cNameOfChord2.getValue() + cNameOfChord3.getValue();
     }
 
-
     // creating guitarKey (scale) by using pattern which looks another for each scale
     public static List<String> createGuitarKey(String startNote, int level)
     {
@@ -276,7 +275,7 @@ public class HelloApplication extends Application {
         guitarKey.put(10, "2122221"); // melodic moll scale
 
 
-        // informations for my update:
+        // informations for my next scales update:
         // altered scale
         // altered start from dominant (7 notes from first note) even its note not from scale!
         // we are taking dominant note - in a natural moll its E
@@ -374,6 +373,8 @@ public class HelloApplication extends Application {
         mapOfString.put(4, guitarStringG);
         mapOfString.put(5, guitarStringB);
         mapOfString.put(6, guitarStringE2);
+
+        System.out.println(guitarStringA.getListOfStringNotes2());
 
         return mapOfString;
     }
