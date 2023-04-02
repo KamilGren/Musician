@@ -413,8 +413,6 @@ public class HelloApplication extends Application {
 
         List <String> allNotes = createListOfNoteFromFirstNote(startNote);
 
-        int chordSize;
-
         // now create from chord pattern which is used in music harmony
         // major chords
         if (nameOfChord.contains("Major") && !nameOfChord.contains("7"))
@@ -447,13 +445,13 @@ public class HelloApplication extends Application {
         }
 
         // diminished chords
-        else if (nameOfChord.contains("Diminished"))
+        else if (nameOfChord.contains("Diminished") && !nameOfChord.contains("7") && !nameOfChord.contains("-"))
         {
             notesInChord.add(allNotes.get(0));
             notesInChord.add(allNotes.get(3));
             notesInChord.add(allNotes.get(6));
         }
-        else if (nameOfChord.contains("Diminished7"))
+        else if (nameOfChord.contains("Diminished7") && !nameOfChord.contains("-"))
         {
             notesInChord.add(allNotes.get(0));
             notesInChord.add(allNotes.get(3));
@@ -469,27 +467,27 @@ public class HelloApplication extends Application {
             notesInChord.add(allNotes.get(6));
             notesInChord.add(allNotes.get(10));
         }
+        else if (nameOfChord.contains("Half-diminished") && !nameOfChord.contains("7"))
+        {
+            notesInChord.add(allNotes.get(0));
+            notesInChord.add(allNotes.get(3));
+            notesInChord.add(allNotes.get(6));
+        }
         // dominant chords
         else if (nameOfChord.contains("Dominant7"))
         {
             notesInChord.add(allNotes.get(0));
-            notesInChord.add(allNotes.get(3));
+            notesInChord.add(allNotes.get(4));
             notesInChord.add(allNotes.get(7));
             notesInChord.add(allNotes.get(10));
         }
+
         else
             System.out.println("We dont have this chord!");
 
-
-        if (nameOfChord.contains("7")) {
-            chordSize = 4;
-        }
-        else
-            chordSize = 3;
-
         for(Node node : childrens )
         {
-            for(int i = 0; i < chordSize; i++)
+            for(int i = 0; i < notesInChord.size(); i++)
             {
                 if(((Note) node).getName().equals(notesInChord.get(i))) {
                     node.setStyle("-fx-background-color: pink");
