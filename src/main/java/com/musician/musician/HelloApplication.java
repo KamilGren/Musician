@@ -5,21 +5,28 @@ import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+
 
 public class HelloApplication extends Application {
 
@@ -74,6 +81,7 @@ public class HelloApplication extends Application {
         stage.setTitle("Musician");
         stage.setScene(scene);
         stage.show();
+        stage.setResizable(false);
     }
 
     public void buildMenuOptions()
@@ -88,6 +96,28 @@ public class HelloApplication extends Application {
 
         Label lChooseOctaviaLevel = new Label("Choose octava level: ");
         clevelOfOctavia = new ComboBox<String>(FXCollections.observableArrayList(octaviaLevels));
+
+        Image image = new Image(getClass().getResourceAsStream("/info_icon.png"));
+        ImageView imageView = new ImageView(image);
+        imageView.setFitHeight(20);
+        imageView.setFitWidth(20);
+        Button bInfo = new Button("Przycisk", imageView);
+        bInfo.setPrefSize(20, 20);
+
+        bInfo.setOnAction(e -> {
+            Image imageOfInformations = new Image(getClass().getResourceAsStream("/informations.png"));
+            ImageView imageViewOfInformations = new ImageView(imageOfInformations);
+            imageViewOfInformations.setFitWidth(1024);
+            imageViewOfInformations.setFitHeight(768);
+
+
+            Stage stage = new Stage();
+            Scene scene = new Scene(new Group(imageViewOfInformations));
+            stage.setScene(scene);
+            stage.show();
+
+        });
+
 
         Label lChooseChord = new Label ("Choose your chord: ");
         cNameOfChord1 = new ComboBox<Object>(FXCollections.observableArrayList(GuitarString.getListOfStringNotes()));
@@ -155,7 +185,7 @@ public class HelloApplication extends Application {
 
         scaleHarmonicInformations.setMinSize(100, 100);
 
-        hBox.getChildren().addAll(lChooseChord, cNameOfChord1, cNameOfChord2, cNameOfChord3, lChooseScale, cNameOfScale1, cNameOfScale2, scaleHarmonicInformations, lChooseOctaviaLevel, clevelOfOctavia);
+        hBox.getChildren().addAll(lChooseChord, cNameOfChord1, cNameOfChord2, cNameOfChord3, lChooseScale, cNameOfScale1, cNameOfScale2, scaleHarmonicInformations, lChooseOctaviaLevel, clevelOfOctavia, bInfo);
     }
 
     // we are here, stop 13:06 //// 20:06, 17.03.2023 wtopka tutaj string zamiast list ze skala..
@@ -270,7 +300,7 @@ public class HelloApplication extends Application {
         guitarKey.put(7, "2212212"); // mixolydian scale
         guitarKey.put(8, "2122131"); // harmonic moll scale
         guitarKey.put(9, "1312122"); // phrygian dur scale
-        guitarKey.put(10, "2122221"); // melodic moll scale
+        //guitarKey.put(10, "2122221"); // melodic moll scale
 
 
         // informations for my next scales update:
