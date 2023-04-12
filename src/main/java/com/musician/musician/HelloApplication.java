@@ -90,7 +90,7 @@ public class HelloApplication extends Application {
 
         String  typeOfChords[] = {"Major", "Minor", "Dominant", "Half-diminished", "Diminished"};
         String  typeOfChords2[] = {"(3 notes)", "7 (4 notes)"};
-        String typeOfScales[] = {"1 - aolian scale", "2 - locrian scale", "3 - ionian / dur scale", "4 - dorian scale", "5 - phrygian scale", "6 - lydian scale", "7 - mixolydian scale", "8 - harmonic moll scale", "9 - phrygian scale", "10 - melodic moll scale" };
+        String typeOfScales[] = {"1 - aolian scale", "2 - locrian scale", "3 - ionian / dur scale", "4 - dorian scale", "5 - phrygian scale", "6 - lydian scale", "7 - mixolydian scale", "8 - harmonic moll scale", "9 - phrygian scale"};
 
         String octaviaLevels[] = {"4", "3", "2", "1"};
 
