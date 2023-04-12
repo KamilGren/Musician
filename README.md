@@ -28,8 +28,7 @@ If you want to have some informations about chord patterns use info button which
 ## What next?
 
 I'm working with more difficult things which needs time for implement. 
-Now I'm working on create tonic, subdomninant and dominant chords for all of scales.
-After this I will improve scales, make sounds for notes and create possibility of upload some tabs which application can play.
+My next steps are to make make this application sounds good and create possibility to read guitar tabs.
 
 
 
