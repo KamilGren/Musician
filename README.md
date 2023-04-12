@@ -19,8 +19,9 @@ It also help me to know Java more deeply.
 In my application you can easily find 60 chords which we can play on guitar and 9 scales to use.
 You can look how chords and scales are displaying on fretboard, so for you its much easier to play anything and learn fretboard on your classical guitar! If you have your guitar pick up it and try for example play scale in phrygiant dominant (9) in E. Sounds good, yeah? ;)
 
-If you want to have some informations about chord patterns use info button which is located on the right side of application.
+If you want to have some informations about chord patterns use info button which is located on the right side of application. Application also shows chords for **all positions** of used scales in my application. Here is example of how its works:
 
+<img src="https://github.com/KamilGren/Musician/blob/master/displayingChordsOfScale.png" alt="chords on scale positions">
 
 
 
