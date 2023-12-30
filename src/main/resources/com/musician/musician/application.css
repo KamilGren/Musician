@@ -5,9 +5,14 @@
 -fx-alignment: center;
 -fx-font-size: 12;
 -fx-font-weight: bold;
--fx-border-color: white;
--fx-border-size: 3;
--fx-background-color: #b2ad7f;
+-fx-border-color: black;
+-fx-border-size: 7;
+-fx-background-color: #D2B48C;
+
+}
+
+.button:hover {
+    -fx-background-color: #A0522D; /* Kolor na najechanie myszką */
 }
 
 .textArea {
@@ -24,8 +29,19 @@
 -fx-border-radius: 5;
 }
 
+HBox > * {
+    -fx-spacing: 10px;
+}
+
+VBox > * {
+    -fx-spacing: 10px;
+}
+
 .combo-box {
 -fx-spacing: 20;
 }
+
+.PieChart {
+-fx-background-color: transparent}
 
 

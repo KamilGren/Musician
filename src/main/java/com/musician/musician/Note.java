@@ -3,6 +3,7 @@ package com.musician.musician;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.paint.Color;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,9 +36,13 @@ public class Note extends Button {
         this.setOnAction(event -> {
             Object node = event.getSource(); //returns the object that generated the event
             Note note = (Note) node;
-            note.setStyle("-fx-background-color: white");
+            note.setStyle("-fx-background-color: orange");
             System.out.println("Note name: " + note.getText() + " and level of octavia: " + note.getLevelOfOctavia());
         });
+    }
+
+    public void changeColorToChordNote() {
+        this.setStyle("-fx-background-color: orange");
     }
 
     // make a method which shows all notes from one octava in other colour when the button is clicked
@@ -58,13 +63,49 @@ public class Note extends Button {
         this.levelOfOctavia = levelOfOctavia;
     }
 
-    public Map<Integer, Integer> getPositionOfNote()
-    {
-        Map <Integer, Integer> positionOfNotes = new HashMap<>();
-        positionOfNotes.put(this.rowPosition, this.colPosition);
-
-        return positionOfNotes;
+    public int getRowPosition() {
+        return rowPosition;
     }
 
+    public int getColPosition() {
+        return colPosition;
+    }
+
+    public String getStringName() {
+
+        String stringName = "";
+
+        switch(getColPosition()) {
+
+            case 0:
+                stringName = "El";
+                break;
+
+            case 1:
+                stringName = "A";
+                break;
+
+            case 2:
+                stringName = "D";
+                break;
+
+            case 3:
+                stringName = "G";
+                break;
+
+            case 4:
+                stringName = "B";
+                break;
+
+            case 5:
+                stringName = "Eh";
+                break;
+
+            default:
+                System.out.println("Brak takiej struny dla tej nuty!");
+        }
+        
+        return stringName;
+    }
 
 }

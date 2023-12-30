@@ -4,14 +4,14 @@ import javafx.application.Application;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
+import javafx.scene.chart.PieChart;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -28,27 +28,37 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 
 
+// edit 23.11.2023 BorderPane
+
 public class HelloApplication extends Application {
 
-    public GridPane root = new GridPane();
-    public HBox hBox = new HBox();
+    public BorderPane root = new BorderPane();
+    public GridPane grid = new GridPane();
+    public VBox vBoxButtons = new VBox();
+    public HBox hBoxCharts = new HBox();
     public VBox vBox = new VBox();
     public ComboBox<Object> cNameOfChord1 = new ComboBox<>();
-    public ComboBox<String> cNameOfChord2 = new ComboBox<String>();
-    public ComboBox<String> cNameOfChord3 = new ComboBox<String>();
+    public ComboBox<String> cNameOfChord2 = new ComboBox<>();
+    public ComboBox<String> cNameOfChord3 = new ComboBox<>();
     public ComboBox<Object> cNameOfScale1 = new ComboBox<>();
-    public ComboBox<String> cNameOfScale2 = new ComboBox<String>();
-    public ComboBox<String> clevelOfOctavia = new ComboBox<String>();
+    public ComboBox<String> cNameOfScale2 = new ComboBox<>();
+    public ComboBox<String> clevelOfOctavia = new ComboBox<>();
+    public ComboBox<String> cPositionOfChord = new ComboBox<>();
     public static TextArea scaleHarmonicInformations = new TextArea();
-
+    public HashMap<Integer, GuitarString> fretBoard = new HashMap<>();
+    public HashMap<Integer, List<Note>> cagedPositionOfChord = new HashMap<>();
+    public ObservableList<String> positionOfChordToDisplay = FXCollections.observableArrayList();
 
     @Override
     public void start(Stage stage)
     {
 
-        vBox.getChildren().addAll(root, hBox);
-        hBox.setPadding(new Insets(15, 12, 15, 12));
-        hBox.setSpacing(10);
+        root.setCenter(grid);
+        root.setBottom(vBox);
+
+        vBoxButtons.setPadding(new Insets(15, 12, 15, 12));
+
+        vBox.getChildren().addAll(vBoxButtons, hBoxCharts);
 
         fillGuitarNeck();
 
@@ -61,15 +71,15 @@ public class HelloApplication extends Application {
             ColumnConstraints column = new ColumnConstraints();
             RowConstraints row = new RowConstraints();
 
-            root.getColumnConstraints().add(column);
-            root.getRowConstraints().add(row);
+            grid.getColumnConstraints().add(column);
+            grid.getRowConstraints().add(row);
 
             column.setPrefWidth(90);
             row.setPrefHeight(90);
 
         }
 
-        Scene scene = new Scene(vBox, 1695, 350);
+        Scene scene = new Scene(root, 1695, 850);
 
         try {
             scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
@@ -87,6 +97,9 @@ public class HelloApplication extends Application {
     public void buildMenuOptions()
     {
         // all what we need to know what type of chord client is looking for:
+
+        HBox hboxUp = new HBox();
+        HBox hboxDown = new HBox();
 
         String  typeOfChords[] = {"Major", "Minor", "Dominant", "Half-diminished", "Diminished"};
         String  typeOfChords2[] = {"(3 notes)", "7 (4 notes)"};
@@ -110,14 +123,12 @@ public class HelloApplication extends Application {
             imageViewOfInformations.setFitWidth(1024);
             imageViewOfInformations.setFitHeight(768);
 
-
             Stage stage = new Stage();
             Scene scene = new Scene(new Group(imageViewOfInformations));
             stage.setScene(scene);
             stage.show();
 
         });
-
 
         Label lChooseChord = new Label ("Choose your chord: ");
         cNameOfChord1 = new ComboBox<Object>(FXCollections.observableArrayList(GuitarString.getListOfStringNotes()));
@@ -129,9 +140,39 @@ public class HelloApplication extends Application {
         cNameOfChord2.getSelectionModel().selectFirst();
         cNameOfChord3.getSelectionModel().selectFirst();
 
+        // creating chords by chord name choosed by user
+
         cNameOfChord1.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
             clearFretboard();
-            createChord(createChordName());
+            String chordName = createChordName();
+
+            if(positionOfChordToDisplay != null) {
+                positionOfChordToDisplay.clear();
+            }
+
+            // in back we receive 5 position of this chord, if its major chord (without 7)
+            cagedPositionOfChord = createChordsInCAGEDSystem(chordName);
+
+            // we add it to observableArrayList
+            // and to our ComboBox
+
+            // adding chord positions from caged method to our observable list
+            // using keyset to add all of keys like notes from 1 position, notes from 2 positon...
+            // observable list start from 0, not from 1 so we use this loop to edit it
+            for(Integer key : cagedPositionOfChord.keySet()) {
+                positionOfChordToDisplay.add(key.toString());
+
+            }
+
+            positionOfChordToDisplay.add("All another variation of chord");
+
+            System.out.println("Position of chord to display: " + positionOfChordToDisplay);
+
+            // and now add this list to our combox which display it on the screen
+            cPositionOfChord.setItems(positionOfChordToDisplay);
+            cPositionOfChord.getSelectionModel().selectFirst();
+
+
         });
         cNameOfChord2.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
             clearFretboard();
@@ -142,19 +183,55 @@ public class HelloApplication extends Application {
             createChord(createChordName());
         });
 
+        // PROBLEM: we have the same notes, not with the correct row and col... notes od notes...
+        // create action when click on combox with observable list
+            cPositionOfChord.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+
+                    // selected number index
+                    // this selected number is -1 then positioOfChordToDisplay
+                    int selectedIndex = cPositionOfChord.getSelectionModel().getSelectedIndex();
+
+                    clearFretboard();
+                    if(selectedIndex >= 0 && selectedIndex != 6) {
+
+                        // find way to display 1-5 position the same for all of chords
+                        // position of chord to display - lista z ktorej gracz wybiera
+                        // cagedpositionofchord
+
+                        if(selectedIndex == 5) {
+                            // 6 selected value on cPositionOfChord
+                            // its another variations of chord
+                            String chordName = createChordName();
+                            createChord(chordName);
+                        }
+                        else {
+                            List<Note> selectedPositionOfNote = cagedPositionOfChord.get(selectedIndex + 1);
+                            System.out.println("selected" + selectedIndex + " " + selectedPositionOfNote);
+                            // choose one of this numbers from combox to show chord on fretboard
+                            displayNotesOnFretboard(selectedPositionOfNote);
+                        }
+                    }
+                }
+            });
+
         clevelOfOctavia.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
             clearFretboard();
             findNotesInOneOctavia(Integer.parseInt(newValue), "orange");
                 });
-
         // all what we want to know to show typed scale on fretboard
 
         // scale is key (another name) like A moll scale...
         Label lChooseScale = new Label ("Choose your scale: ");
         cNameOfScale1 = new ComboBox<Object>(FXCollections.observableArrayList(GuitarString.getListOfStringNotes()));
         cNameOfScale2 = new ComboBox<>(FXCollections.observableArrayList(typeOfScales));
+        CheckBox chShowCircleOfFifth = new CheckBox();
+        Label lShowCircleOfFfith = new Label("Show Circle of Fifth?");
+
         AtomicBoolean flag1 = new AtomicBoolean(false);
         AtomicBoolean flag2 = new AtomicBoolean(false);
+        ObservableList<String> guitarKeyToShow = FXCollections.observableArrayList(); // standard list must be final to use in lambda
 
         cNameOfScale1.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
             clearFretboard();
@@ -166,7 +243,7 @@ public class HelloApplication extends Application {
                 // we need type of scale in numbers choosen by user to use it in pattern to create this scale
                 // its like 1 - natural moll, 2 - locrian...
                 int typeOfScale = Character.getNumericValue(cNameOfScale2.getValue().charAt(0));
-                List <String> guitarKeyToShow = createGuitarKey(scaleNoteName, typeOfScale);
+                guitarKeyToShow.addAll(createGuitarKey(scaleNoteName, typeOfScale));
                 showGuitarKey(guitarKeyToShow);
                 changeTextInTextArea(guitarKeyToShow);
             }
@@ -177,15 +254,104 @@ public class HelloApplication extends Application {
             if(flag1.get() && flag2.get()) {
                 String scaleNoteName = cNameOfScale1.getValue().toString();
                 int typeOfScale = Character.getNumericValue(cNameOfScale2.getValue().charAt(0));
-                List <String> guitarKeyToShow = createGuitarKey(scaleNoteName, typeOfScale);
+                guitarKeyToShow.addAll(createGuitarKey(scaleNoteName, typeOfScale));
                 showGuitarKey(guitarKeyToShow);
                 changeTextInTextArea(guitarKeyToShow);
+
+                // if name of scale, scale type and checkbox show circle of fifth is selected
+            }
+        });
+
+
+        // first i need to assign circle first notes to type of scale because each scale has another first note starts from A.. ABCDEFG
+        // so its easy to do, i can use also f.e. ascii + number of scale, at this moment i know only 7 scales
+        HashMap<Integer, String> firstNotesFromCirclesOfFifth = new HashMap<>();
+        firstNotesFromCirclesOfFifth.put(1, "A");
+        firstNotesFromCirclesOfFifth.put(2, "B");
+        firstNotesFromCirclesOfFifth.put(3, "C");
+        firstNotesFromCirclesOfFifth.put(4, "D");
+        firstNotesFromCirclesOfFifth.put(5, "E");
+        firstNotesFromCirclesOfFifth.put(6, "F");
+        firstNotesFromCirclesOfFifth.put(7, "G");
+
+        // showing or closing chart, need to create real circle of fifth of selected scale 01.12.2023
+        // need to use type of scale (3- dur 1 - moll etc)
+        chShowCircleOfFifth.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            hBoxCharts.getChildren().clear();
+            if (newValue && flag1.get() && flag2.get()) {
+                int typeOfScale = Character.getNumericValue(cNameOfScale2.getValue().charAt(0));
+
+                // create circle of fifth chart with selected scale
+                createChart(createNotesForCircleOfFifth(firstNotesFromCirclesOfFifth.get(typeOfScale)), typeOfScale);
             }
         });
 
         scaleHarmonicInformations.setMinSize(100, 100);
+        
+        /// tutaj
+        Label lChooseNumberOfChord = new Label("Choose position: ");
 
-        hBox.getChildren().addAll(lChooseChord, cNameOfChord1, cNameOfChord2, cNameOfChord3, lChooseScale, cNameOfScale1, cNameOfScale2, scaleHarmonicInformations, lChooseOctaviaLevel, clevelOfOctavia, bInfo);
+        hboxUp.getChildren().addAll(lChooseChord, cNameOfChord1, cNameOfChord2, cNameOfChord3, lChooseNumberOfChord, cPositionOfChord, bInfo);
+        hboxDown.getChildren().addAll(lChooseScale, cNameOfScale1, cNameOfScale2, lShowCircleOfFfith, chShowCircleOfFifth, scaleHarmonicInformations, lChooseOctaviaLevel, clevelOfOctavia);
+        vBoxButtons.getChildren().addAll(hboxUp, hboxDown);
+    }
+
+    public List<String> createNotesForCircleOfFifth(String firstNote) {
+
+        // all guitar notes starts from firstNote
+        List <String> stringNotes = GuitarString.getAllNotesFromChoosenNote(firstNote);
+        List<String> circleOfFifthNotes = new ArrayList<>();
+        String nextCircleOfFifthLetter;
+
+        // repeat to have 12 notes in circle list
+        while (circleOfFifthNotes.size() < 12) {
+
+            // get next note on circle of fifth
+            nextCircleOfFifthLetter = stringNotes.get(7);
+            circleOfFifthNotes.add(nextCircleOfFifthLetter);
+            // this makes another sort of note from this next note
+            stringNotes = GuitarString.getAllNotesFromChoosenNote(nextCircleOfFifthLetter);
+        }
+
+        return circleOfFifthNotes;
+    }
+    public void createChart(List<String> guitarKeyNotes, int typeOfScale) {
+
+        ObservableList<PieChart.Data> pieChartData = createChartData(guitarKeyNotes);
+
+        PieChart chart = new PieChart(pieChartData);
+
+        // dopisac jakiej skali jest to koło dla każdego wyboru
+        chart.setTitle("Koło Kwintowe");
+        // position of first is C and its on top
+        chart.setStartAngle(90);
+        chart.setPrefSize(300, 300);
+        chart.setLabelLineLength(10);
+        chart.setLabelsVisible(true);
+        chart.setStyle("-fx-background-color: transparent;");
+
+
+        for(int i=0; i < chart.getData().size(); i++) {
+
+            String guitarKeyFirstNote = chart.getData().get(i).getName();
+            List<String> guitarKeyfromChart = createGuitarKey(guitarKeyFirstNote, typeOfScale);
+
+            chart.getData().get(i).getNode().setOnMouseClicked(event -> showGuitarKey(guitarKeyfromChart));
+        }
+
+
+        hBoxCharts.getChildren().add(chart);
+    }
+
+    // adding each note from scale to ObservableList
+    private ObservableList<PieChart.Data> createChartData(List<String> guitarKeyNotes) {
+        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
+
+        for (String note : guitarKeyNotes) {
+            pieChartData.add(new PieChart.Data(note, 1));
+        }
+
+        return pieChartData;
     }
 
     // we are here, stop 13:06 //// 20:06, 17.03.2023 wtopka tutaj string zamiast list ze skala..
@@ -201,7 +367,6 @@ public class HelloApplication extends Application {
         }
 
         scaleHarmonicInformations.setText(chordsWithScalePositions.toString());
-
     }
 
     // we are working on ready scale and we create most of chords from pattern (222)
@@ -302,6 +467,7 @@ public class HelloApplication extends Application {
         guitarKey.put(9, "1312122"); // phrygian dur scale
         //guitarKey.put(10, "2122221"); // melodic moll scale
 
+       // guitarKey.put(10, "") // pentatonic moll
 
         // informations for my next scales update:
         // altered scale
@@ -311,7 +477,6 @@ public class HelloApplication extends Application {
         // and we are going to create f-moll melodic on 7 position
         // f-g-a#-b-c-d-e and add last on first position - e-f-g-a#-b-c-d
         // okey, so give me in DEFGABC#D
-
 
         List<String> guitarKeyNotes = new ArrayList<>();
         List<String> listOfNotes = createListOfNoteFromFirstNote(startNote);
@@ -334,7 +499,10 @@ public class HelloApplication extends Application {
     // here we use ready guitar key to be display on screen - on our group of nodes - notes (on our fretboard).
     public void showGuitarKey(List<String> guitarKey)
     {
-        ObservableList<Node> notesOnBoard = root.getChildren(); // all notes from board
+        ObservableList<Node> notesOnBoard = grid.getChildren(); // all notes from board
+
+        // first clean fretboard from others scales, chords etc
+        clearFretboard();
 
         // of course find from all nodes (notes)
         for (Node node : notesOnBoard) {
@@ -356,21 +524,19 @@ public class HelloApplication extends Application {
     // here we are filling our root by adding to each row notes from proper string (fretboard.get(x))
     public void fillGuitarNeck()
     {
-        HashMap<Integer, GuitarString> fretBoard = new HashMap<>();
         fretBoard = createFretBoard();
-
 
         for(int i = 0; i <= 20; i++)
         {
-            root.add(fretBoard.get(1).getListOfNotes().get(i), i, 6);
-            root.add(fretBoard.get(2).getListOfNotes().get(i), i, 5);
-            root.add(fretBoard.get(3).getListOfNotes().get(i), i, 4);
-            root.add(fretBoard.get(4).getListOfNotes().get(i), i, 3);
-            root.add(fretBoard.get(5).getListOfNotes().get(i), i, 2);
-            root.add(fretBoard.get(6).getListOfNotes().get(i), i, 1);
+            grid.add(fretBoard.get(1).getListOfNotes().get(i), i, 6);
+            grid.add(fretBoard.get(2).getListOfNotes().get(i), i, 5);
+            grid.add(fretBoard.get(3).getListOfNotes().get(i), i, 4);
+            grid.add(fretBoard.get(4).getListOfNotes().get(i), i, 3);
+            grid.add(fretBoard.get(5).getListOfNotes().get(i), i, 2);
+            grid.add(fretBoard.get(6).getListOfNotes().get(i), i, 1);
 
             Label lNumberOfBar = new Label(String.valueOf(i));
-            root.add(lNumberOfBar, i, 0);
+            grid.add(lNumberOfBar, i, 0);
             lNumberOfBar.setStyle("-fx-font-weight: bold;");
             lNumberOfBar.setTextAlignment(TextAlignment.CENTER);
 
@@ -384,7 +550,7 @@ public class HelloApplication extends Application {
     // we can also find which level of octavia (on guitar we have the same names of notes but we other sounds - their difference is level of octavia)
     public void findNotesInOneOctavia(int levelOfOctavia, String backgroundColor) {
 
-        ObservableList<Node> childrens = root.getChildren();
+        ObservableList<Node> childrens = grid.getChildren();
 
         for(Node node : childrens)
         {
@@ -407,17 +573,15 @@ public class HelloApplication extends Application {
         GuitarString guitarStringB = new GuitarString("B3");
         GuitarString guitarStringE2 = new GuitarString("E2");
         GuitarString guitarStringE4 = new GuitarString("E4");
-        GuitarString guitarStringA = new GuitarString("A4");
-        GuitarString guitarStringD = new GuitarString("D4");
+        GuitarString guitarStringA = new GuitarString("A2");
+        GuitarString guitarStringD = new GuitarString("D3");
 
-        mapOfString.put(1, guitarStringE4);
+        mapOfString.put(1, guitarStringE2);
         mapOfString.put(2, guitarStringA);
         mapOfString.put(3, guitarStringD);
         mapOfString.put(4, guitarStringG);
         mapOfString.put(5, guitarStringB);
-        mapOfString.put(6, guitarStringE2);
-
-        System.out.println(guitarStringA.getListOfStringNotes2());
+        mapOfString.put(6, guitarStringE4);
 
         return mapOfString;
     }
@@ -425,27 +589,193 @@ public class HelloApplication extends Application {
 
     public void clearFretboard()
     {
-        ObservableList<Node> childrens = root.getChildren();
+        ObservableList<Node> childrens = grid.getChildren();
          String harmonicButtonStyleClass = "harmonic-button";
 
         for(Node node : childrens )
         {
             if(!(node instanceof Label))
-            node.setStyle("-fx-background-color: #b2ad7f");
-                if((GridPane.getColumnIndex(node) == 3 || GridPane.getColumnIndex(node) == 5 || GridPane.getColumnIndex(node) == 7 || GridPane.getColumnIndex(node) == 9 || GridPane.getColumnIndex(node) == 12) && !(node instanceof Label))
+            node.setStyle("-fx-background-color: #D2B48C");
+                if(GridPane.getColumnIndex(node) != null && (GridPane.getColumnIndex(node) == 3 || GridPane.getColumnIndex(node) == 5 || GridPane.getColumnIndex(node) == 7 || GridPane.getColumnIndex(node) == 9 || GridPane.getColumnIndex(node) == 12) && !(node instanceof Label))
                 {
-                    node.setStyle("-fx-background-color: #A9A47C");
+                    node.setStyle("-fx-background-color: #8B4513");
                 }
         }
     }
 
+    public HashMap<Integer, List<Note>> createChordsInCAGEDSystem(String chordName) {
+
+        // 1 - dur, 2 - moll, 3 - dur7, 4 - moll7, 5 - x7
+        //int chordType = 0;
+        HashMap <Integer, List<Note>> listOfChords = new HashMap<>();
+
+        // type of chord by match if it is major - names are based on note - type (major, minor etc.) and (3 note) or (4 note) formulation
+        if (chordName.matches(".*[mM]ajor\\(3 notes\\)")) {
+
+            // create 5 chords in CAGED system, strings from E low
+            List<Note> chordC = createChordUsingCAGEDPattern(new String[] {"-", "2", "1", "-1", chordName, "-1"});
+            List<Note> chordA = createChordUsingCAGEDPattern(new String[] {"-", "-2", "0", chordName, "0", "-2"});
+            List<Note> chordG = createChordUsingCAGEDPattern(new String[] {chordName, "-1", "-3", "-3", "-3", "0"});
+            List<Note> chordE = createChordUsingCAGEDPattern(new String[] {"0", "2", "2", "1", "0", chordName});
+            List<Note> chordD = createChordUsingCAGEDPattern(new String[] {"-", "-", chordName, "2", "3", "2"});
+
+            listOfChords.put(1, chordC);
+            listOfChords.put(2, chordA);
+            listOfChords.put(3, chordG);
+            listOfChords.put(4, chordE);
+            listOfChords.put(5, chordD);
+
+        }
+
+        return listOfChords;
+
+    }
+    // C nie działa - czyli 1 w kazdym z tych wybranych opcji
+    public List<Note> createChordUsingCAGEDPattern(String [] arrayOfPatternOperations)
+    {
+        List<Note> newChord = new ArrayList<>();
+        List <String> allNotes;
+        List <String> chordNotes = new ArrayList<>();
+        int tonicIndex = 0;
+        String tonicNote;
+
+        // first find tonicIndex
+        for(int i = 0; i < 6; i++)
+        {
+                if(arrayOfPatternOperations[i].matches("[a-zA-Z].*")) {
+                    tonicNote = String.valueOf(arrayOfPatternOperations[i].charAt(0));
+
+                    if (arrayOfPatternOperations[i].matches("[a-zA-Z]#.*")) {
+                        tonicNote = arrayOfPatternOperations[i].substring(0, 2);
+                        System.out.println("######");
+                        System.out.println(tonicNote);
+                    }
+
+                    // all notes from our tonic notes, need for create chord notes
+                    allNotes = createListOfNoteFromFirstNote(tonicNote);
+
+                    // and now add this chord major notes
+                    chordNotes.add(allNotes.get(0));
+                    chordNotes.add(allNotes.get(4));
+                    chordNotes.add(allNotes.get(7));
+
+                    // look for tonicNote number but only in position from 0 to 13 to not reach over the fretboard (21 position)
+                    // fretboard has map with guitarstring starts from 1 not 0
+                    List<String> stringNotes = fretBoard.get(i+1).getListOfThisStringNotes().subList(0, 13);
+                    tonicIndex = stringNotes.indexOf(tonicNote);
+                    System.out.println("Tonic index: " + tonicIndex);
+
+                }
+
+        }
+
+        int patternPosition;
+        // minimum position of tonic to create chord
+        int minimumPosition = 0;
+        int number = 0;
+        Note note;
+
+        for(int i = 0; i < 6; i++)
+        {
+
+            // In G and D its chord create from tonic and some notes are -3 from tonic note, we need to set minimum note position to display
+            // working chords!
+            // In C,A,E its -2
+
+            for(int j= 0; j < 6; j++) {
+
+                // find which pattern is it by finding its type
+                if(arrayOfPatternOperations[j].matches("[a-zA-Z].*"))
+                {
+                    patternPosition = j;
+                }
+                else
+                    patternPosition = -1;
+
+
+                // set the limit for creating chords
+                // G or D
+                if(patternPosition == 0 || patternPosition == 2) {
+                    System.out.println("G or D");
+                    minimumPosition = 3;
+                }
+                // C A E
+                else if (patternPosition != -1) {
+                    System.out.println("C, A, E");
+                    minimumPosition = 2;
+                }
+
+
+            // if it is matches letter it must be place of tonic, so use it
+            if(arrayOfPatternOperations[i].matches("[a-zA-Z].*")) {
+                newChord.add(fretBoard.get(i+1).getListOfNotes().get(tonicIndex));
+            }
+            // if its 0 on some string, we don't use this string in our method, its blank for us
+            // here it is add or subtract to find searching note on fretboard
+            // we want only numbers from -3 to 3 to add or subtract to our tonic note index
+            if(arrayOfPatternOperations[i].matches("-?[0-3]") && tonicIndex >= minimumPosition) {
+
+                number = Integer.parseInt(arrayOfPatternOperations[i]);
+                note = fretBoard.get(i + 1).getListOfNotes().get(tonicIndex + number);
+
+                    if (note.getName().equals(chordNotes.get(0)) || note.getName().equals(chordNotes.get(1)) || note.getName().equals(chordNotes.get(2))) {
+                        newChord.add(fretBoard.get(i + 1).getListOfNotes().get(tonicIndex + number));
+                    }
+                }
+                // if its some note which is not tonic and minimum position is not fullfiled
+                else if (arrayOfPatternOperations[i].matches("-?[0-3]") && tonicIndex < minimumPosition) {
+                    note = fretBoard.get(i + 1).getListOfNotes().get(tonicIndex + number);
+
+                if (note.getName().equals(chordNotes.get(0)) || note.getName().equals(chordNotes.get(1)) || note.getName().equals(chordNotes.get(2))) {
+                        // we need this to create some chords
+                        newChord.add(fretBoard.get(i + 1).getListOfNotes().get(tonicIndex + number + 12));
+                    }
+                }
+            }
+        }
+        return newChord;
+    }
+
+//    public void createChordsInCAGEDSystem() {
+//
+//        System.out.println(" Tworzymy na to nowa formule.");
+//
+//        // FIRST NOTES
+//        // POSITION OF TONIC
+//
+//        System.out.println("C A G E D");
+//        System.out.println("Dla C to jest... ");
+//
+//        List<Note> chordC = createChordUsingCAGEDPattern(new String[] {"-", "2", "1", "-1", chordName, "-1"});
+//        List<Note> chordA = createChordUsingCAGEDPattern(new String[] {"-", "-2", "0", chordName, "0", "-2"});
+//        List<Note> chordG = createChordUsingCAGEDPattern(new String[] {chordName, "-1", "-3", "-3", "-3", "0"});
+//        List<Note> chordE = createChordUsingCAGEDPattern(new String[] {"0", "2", "2", "1", "0", chordName});
+//        List<Note> chordD = createChordUsingCAGEDPattern(new String[] {"-", "-", chordName, "2", "3", "2"});
+//
+//
+//    }
+
+    public void displayNotesOnFretboard(List<Note> chordName) {
+            // do until we reach the size of this list of notes
+
+        if (chordName.size() > 0) {
+            for(int i = 0; i < chordName.size(); i++)
+            {
+                chordName.get(i).changeColorToChordNote();
+            }
+        }
+
+    }
+
+
     // creating chords on fretboard
     public void createChord(String nameOfChord) {
 
-        // name of chord can be X Maj - dur  its 7
+        // name of chord can be X Maj - dur its 7
         // X m - moll
 
-        ObservableList<Node> childrens = root.getChildren();
+
+        ObservableList<Node> childrens = grid.getChildren();
 
         List <String> notesInChord = new ArrayList<>();
 
@@ -534,7 +864,6 @@ public class HelloApplication extends Application {
         else
             System.out.println("We dont have this chord!");
 
-
         List<String> notesInChordToZero = new ArrayList<>();
         notesInChordToZero.addAll(notesInChord);
         int numberOfChordOccurrence = 0;
@@ -544,12 +873,12 @@ public class HelloApplication extends Application {
         for(Node node : childrens )
         {
             // do until we reach the size of this list of notes
-            for(int i = 0; i < notesInChord.size(); i++)
+            for(int i = 0; i < notesInChordToZero.size(); i++)
             {
                 // if name of node equals String which we have on i place in our list and its not Label
-                if(!(node instanceof Label) && ((Note) node).getName().equals(notesInChord.get(i)))
+                if(!(node instanceof Label) && ((Note) node).getName().equals(notesInChordToZero.get(i)))
                 {
-                        node.setStyle("-fx-background-color: orange");
+                    ((Note) node).changeColorToChordNote();
                 }
                 if(notesInChordToZero.size() == 0)
                 {
@@ -560,7 +889,18 @@ public class HelloApplication extends Application {
 
             }
         }
+
     }
+
+    // next level - audio //
+
+    public void createAudio() {
+
+        double[] stringFrequencies = {82.41, 110.0, 146.83, 196.0, 246.94, 329.63}; // frequencies of each string
+
+
+    }
+
 
     public static void main(String[] args) {
         launch();

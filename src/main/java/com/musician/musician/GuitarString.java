@@ -6,6 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.SourceDataLine;
+import javax.sound.sampled.AudioSystem;
 
 public class GuitarString {
 
@@ -13,18 +17,26 @@ public class GuitarString {
     private final static String [] allNotes  = {"E", "F", "F#", "G", "G#", "A", "A#", "B", "C", "C#", "D", "D#"};
     private static List<String> listOfStringNotes = Arrays.stream(allNotes).toList();
 
-    private List<String> listOfStringNotes2 = new ArrayList<>();
+    private List<String> listOfThisStringNotes;
     private List<Note> listOfNotes;
-
 
     public GuitarString(String name) {
         this.name = name;
         this.listOfNotes = createStringUpdate(name);
-        this.listOfStringNotes2 = createGuitarString(name);
+        this.listOfThisStringNotes = changesNotesToString(listOfNotes);
     }
 
-    public List<String> getListOfStringNotes2() {
-        return listOfStringNotes2;
+    public List<String> changesNotesToString(List<Note> listOfNotes) {
+        List<String> listOfStringNotes = new ArrayList<>();
+
+        for(Note note : listOfNotes) {
+            listOfStringNotes.add(note.getName());
+        }
+        return listOfStringNotes;
+    }
+
+    public List<String> getListOfThisStringNotes() {
+        return listOfThisStringNotes;
     }
 
     public String getName() {
@@ -62,6 +74,13 @@ public class GuitarString {
         this.listOfNotes = listOfNotes;
     }
 
+    public void convertStringtoNote(List<String> listOfNotes) {
+
+        for(String noteName : listOfNotes) {
+
+        }
+
+    }
 
     // create new guitar string
     //this is new method of creating guitar string, im working on it
@@ -104,8 +123,6 @@ public class GuitarString {
 
             return allGuitarStringNotes;
     }
-
-
 
     public static List <Note> createStringUpdate(String nameOfString) 
     {
@@ -240,7 +257,6 @@ public class GuitarString {
             return listOfStringNotes;
     }
 
-
     public void showNotesFromOneOctavia(int levelOfOctavia)
     {
         boolean flag = false;
@@ -249,11 +265,11 @@ public class GuitarString {
         {
             if(listOfNotes.get(i).getLevelOfOctavia() == levelOfOctavia && !flag)
             {
-                listOfNotes.get(i).setStyle("-fx-background-color: white");
+                listOfNotes.get(i).setStyle("-fx-background-color: orange");
                 flag = true;
             }
             else if (flag) {
-                listOfNotes.get(i).setStyle("-fx-background-color: white");
+                listOfNotes.get(i).setStyle("-fx-background-color: orange");
             }
         }
     }
