@@ -24,10 +24,10 @@ If you want to have some informations about chord patterns use info button which
 
 Intereseting for you can be circle of fifth which is shown for most of common scales used in music! You can easily find what you want. Look!
 
-<img src="https://github.com/KamilGren/Musician/blob/master/CircleOfFifth.png" alt="circle of fifth">
+<img src="https://github.com/KamilGren/Musician/blob/master/circleOfFifth.png" alt="circle of fifth">
 
 
-Application also shows chords for **all positions** of used scales in my application which is important element for music harmony. Here is example of how its works:
+Application also shows chords I-VII (tonic, dominant, subdominant and more..) for **all positions** of used scales in my application which is important element for music harmony! Here is example of how its works:
 
 <img src="https://github.com/KamilGren/Musician/blob/master/displayingChordsOfScale.png" alt="chords on scale positions">
 
