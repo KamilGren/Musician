@@ -586,7 +586,7 @@ public class HelloApplication extends Application {
         return mapOfString;
     }
 
-
+    // clear
     public void clearFretboard()
     {
         ObservableList<Node> childrens = grid.getChildren();
